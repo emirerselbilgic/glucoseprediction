@@ -44,16 +44,16 @@ def train_model(seedNumber, epoch, modelType, testFlag, plotFlag, patientFlag, n
     sess = tf.compat.v1.Session(graph=tf.compat.v1.get_default_graph(), config=session_conf)
 
 
-    model_filename = "my_model.keras" 
+    model_filename = "ConvGRU_120ph_patientflag_0.h5" 
 
-    train_X0, train_y0, val_X0, val_y0, test_X0, test_y0, train_X0_reshaped, train_y0_reshaped, first_row_new_dataset = dataProcess(featureNumber, patientFlag, newPatientFlag, plotFlag)
+    train_X0, train_y0, train_X0_reshaped, train_y0_reshaped, first_row_new_dataset = dataProcess(featureNumber, patientFlag, newPatientFlag, plotFlag)
 
     if os.path.exists(model_filename):
         model = keras.models.load_model(model_filename, custom_objects = {'Attention': Attention})
         print("Existing model loaded.")
         
         history = model.fit(train_X0_reshaped, train_y0_reshaped, epochs=50, batch_size=32, verbose=0, callbacks=[earlyStopping])
-        model.save("my_model.keras")
+        model.save("ConvGRU_120ph_patientflag_0.h5")
 
         prediction = app_predict(train_y0_reshaped, model_filename, first_row_new_dataset)
 
@@ -83,7 +83,7 @@ def train_model(seedNumber, epoch, modelType, testFlag, plotFlag, patientFlag, n
         model.compile(loss='mse',
                     optimizer=rmsprop, metrics=['accuracy'])
         model.fit(train_X0, train_y0, epochs=epoch, batch_size=32, verbose=1, callbacks=[])
-        model.save("my_model.keras")
+        model.save("ConvGRU_120ph_patientflag_0.h5")
         print("New model created.")
 
         # predict = model.predict(train_X0)

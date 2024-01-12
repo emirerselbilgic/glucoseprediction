@@ -15,6 +15,8 @@ def app_predict(train_X0_reshaped, model_filename, first_row_new_dataset):
     prediction = prediction[0]
     print("prediction\n********\n", prediction)
 
+    first_row_new_dataset = first_row_new_dataset.values[0]
+
     # Function to update the matrix with a new prediction
     def update_matrix(matrix, new_prediction):
         # Shift all rows up by one position
@@ -24,15 +26,16 @@ def app_predict(train_X0_reshaped, model_filename, first_row_new_dataset):
         matrix[-1, :] = new_prediction
 
     
-    print("\nUpdated Matrix after New Prediction:")
-    print("prediction_matrix",prediction_matrix)
+    # print("\nUpdated Matrix after New Prediction:")
+    # print("prediction_matrix",prediction_matrix)
     diagonal_elements = np.fliplr(prediction_matrix).diagonal()
     diagonal_elements = np.flip(diagonal_elements)
-    print("diagonal_elements",diagonal_elements)
+    # print("diagonal_elements",diagonal_elements)
 
     rmse_values = []
+    # first_row_new_dataset = first_row_new_dataset.values
     for i in range(len(diagonal_elements)):
-        rmse = np.sqrt(mean_squared_error([first_row_new_dataset][0], [diagonal_elements[i]]))
+        rmse = np.sqrt(mean_squared_error([first_row_new_dataset[0]], [diagonal_elements[i]]))
         rmse_values.append(rmse)
 
 

@@ -29,6 +29,7 @@ def fix_anomalies(data, method='median'):
 
     return fixed_data
 
+first_run = True  # Flag to track the first run
 
 def dataProcess(featureNumber,patientFlag, newPatientFlag, plotFlag):
 
@@ -71,19 +72,33 @@ def dataProcess(featureNumber,patientFlag, newPatientFlag, plotFlag):
     # fixed_dataset_median=fix_anomalies(new_dataset, method='interpolate')
 
     #######################################################
+    
     first_row_new_dataset = None
-    model_filename = "my_model.keras" 
+    model_filename = "ConvGRU_120ph_patientflag_0.h5" 
+    global first_run
     if os.path.exists(model_filename):
         new_dataset = new_dataset.dropna()
-        first_row_new_dataset = new_dataset.iloc[0] #train_x
-        new_dataset = new_dataset[1:]
-        print("first_row_new_dataset",first_row_new_dataset)
-        dataset = np.vstack([dataset, first_row_new_dataset])
+        if first_run:
+            first_datas = new_dataset.iloc[0:24] #train_x
+            new_dataset = new_dataset[24:]
+            print("first_datas", first_datas)
+            dataset = np.vstack([dataset, first_datas])
+            first_row_new_dataset = first_datas.iloc[-1:] #train_x
+            print("bbbbb", first_row_new_dataset)
+            first_run = False
+        else:
+            first_row_new_dataset = new_dataset.iloc[[0]] #train_x
+            new_dataset = new_dataset[1:]
+            print("first_row_new_dataset",first_row_new_dataset)
+            dataset = np.vstack([dataset, first_row_new_dataset])
     DF_1 = pd.DataFrame(dataset)
     DF_1.to_csv(patientTrainList[patientFlag])
     DF_2 = pd.DataFrame(new_dataset)
     DF_2.to_csv(patientTrainList[newPatientFlag])
+
     #########################################################
+
+
 
     def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
         n_vars = 1 if type(data) is list else data.shape[1]
@@ -111,13 +126,12 @@ def dataProcess(featureNumber,patientFlag, newPatientFlag, plotFlag):
     print(type(dataset))
     
     df5 = series_to_supervised(dataset, 24, 24)
-    df5_test = series_to_supervised(test_dataset, 24, 24)
+
 
     # ensure all data is float
     valuesTrain = df5.values
     valuesTrain = valuesTrain.astype('float32')
-    valuesTest = df5_test.values
-    valuesTest = valuesTest.astype('float32')
+
 
     # # normalize features
     # scaler = StandardScaler()
@@ -131,13 +145,11 @@ def dataProcess(featureNumber,patientFlag, newPatientFlag, plotFlag):
 
     # split into input and outputs
     train_X0, train_y0 = valuesTrain[:split_v, :-24], valuesTrain[:split_v, -24:]
-    val_X0, val_y0 = valuesTrain[split_v:,:-24], valuesTrain[split_v:,-24:]
-    test_X0, test_y0 = valuesTest[:, :-24], valuesTest[:, -24:]
+
+
 
     # reshape input to be 3D [samples, timesteps, features]
     train_X0 = train_X0.reshape((train_X0.shape[0], 1, train_X0.shape[1]))
-    val_X0 = val_X0.reshape((val_X0.shape[0], 1, val_X0.shape[1]))
-    test_X0= test_X0.reshape((test_X0.shape[0], 1, test_X0.shape[1]))
 
     input = train_X0[-1]
     target = train_y0[-1]
@@ -146,4 +158,4 @@ def dataProcess(featureNumber,patientFlag, newPatientFlag, plotFlag):
     train_X0_reshaped = input.reshape((input.shape[0], 1, input.shape[1]))
     train_y0_reshaped = target.reshape((1, 1, 24))
 
-    return  train_X0, train_y0, val_X0, val_y0, test_X0, test_y0, train_X0_reshaped, train_y0_reshaped, first_row_new_dataset
+    return  train_X0, train_y0, train_X0_reshaped, train_y0_reshaped, first_row_new_dataset
